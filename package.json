@@ -1,0 +1,39 @@
+{
+  "name": "http-client-for-ts",
+  "version": "1.0.0",
+  "description": "A fetch wrapper inspired by the Java http client design",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": false,
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "SantiagoVOGIT",
+  "license": "MIT",
+  "keywords": [
+    "typescript",
+    "java",
+    "http",
+    "http-client",
+    "typescript",
+    "fetch"
+  ],
+  "repository": {
+    "type": "git",
+    "url": ""
+  },
+  "bugs": {
+    "url": ""
+  },
+  "files": [
+    "/dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
