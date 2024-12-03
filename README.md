@@ -1,21 +1,33 @@
 # http-client-for-ts
 
+[![npm version](https://badge.fury.io/js/http-client-for-ts.svg)](https://badge.fury.io/js/http-client-for-ts)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A modern TypeScript HTTP client library inspired by Java's HttpClient design, providing an elegant builder pattern API wrapper around the Fetch API.
 
 ## Features
 
-- 🔨 Builder pattern for intuitive request/client configuration
-- 🚀 Promise-based async/await API
-- 🔄 Automatic request/response body serialization
--  ⚡ Configurable timeouts and abort control
-- 🛡️ Type-safe responses with generics
-- 🌐 Full control over CORS, caching, and credentials
-- 🔗 Flexible redirect handling
-- 🔍 Detailed error handling with custom exceptions
+- 📝 Type-safe responses using TypeScript generics
+- 🛠️ Fluent builder pattern API for request and client configuration
+- ⚡ Modern async/await interface with Promise-based operations
+- 🔄 Built-in serialization/deserialization for request and response bodies
+- ⏱️ Configurable request timeouts and cancelation support
+- 🔍 Query parameter handling
+- 🔒 Thread-safe immutable request and response objects
+- ⚡ High performance through native Fetch API
+- 📦 Minimal bundle size impac
+- 🌐 Complete access to underlying Fetch API capabilities
+
+## Prerequisites
+
+- Node.js >= 14.0.0
+- TypeScript >= 4.x
 
 ## Installation
 
-`npm install http-client-for-ts`
+```bash
+npm install http-client-for-ts
+```
 
 ## Quick Start
 
@@ -80,6 +92,11 @@ try {
     // Handle error
 }
 ```
+
+## Documentation
+
+For more details visit the source code of each of the public API files.
+
 ## Contributing
 
 1. Fork the Project
@@ -87,7 +104,3 @@ try {
 3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-## License
-
-[MIT License](LICENSE)

@@ -8,30 +8,37 @@
   "scripts": {
     "build": "tsc"
   },
-  "author": "SantiagoVOGIT",
+  "author": {
+    "name": "SantiagoVOGIT",
+    "url": "https://github.com/SantiagoVOGIT"
+  },
   "license": "MIT",
   "keywords": [
     "typescript",
     "java",
+    "typescript-library",
     "http",
     "http-client",
-    "typescript",
-    "fetch"
+    "fetch",
+    "fetch-api"
   ],
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/SantiagoVOGIT/http-client-for-ts.git"
   },
   "bugs": {
-    "url": ""
+    "url": "https://github.com/SantiagoVOGIT/http-client-for-ts/issues"
   },
   "files": [
-    "/dist",
+    "dist",
     "LICENSE",
     "README.md"
   ],
   "devDependencies": {
-    "typescript": "^5.6.3"
+    "typescript": "^5.7.2"
+  },
+  "peerDependencies": {
+    "typescript": ">=4.0.0"
   },
   "engines": {
     "node": ">=14.0.0"
