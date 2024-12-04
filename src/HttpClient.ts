@@ -1,8 +1,9 @@
 import { HttpClientBuilderImpl } from "./internal/HttpClientBuilderImpl";
 import { HttpRequest } from "./HttpRequest";
 import { HttpResponse } from "./HttpResponse";
-import { Redirect } from "./util/Redirect";
-import { Priority } from "./util/Priority";
+import { Redirect } from "./req-types/Redirect";
+import { Priority } from "./req-types/Priority";
+import { RetryPolicy } from "./config-types/RetryPolicy";
 
 /**
  * A high-level HTTP client for making web requests.
@@ -202,7 +203,35 @@ export interface Builder {
      * @returns The builder instance for method chaining
      * @throws {TypeError} If priority is not one of the valid enum values
      */
+
     priority(priority: Priority): Builder;
+
+    /**
+     * Configures the retry behavior for failed HTTP requests.
+     *
+     * @param policy - The {@link RetryPolicy} that determines when to retry requests
+     * @param maxAttempts - Maximum number of retry attempts (must be > 0)
+     * @param delay - Time in milliseconds to wait between retries (must be >= 0)
+     * @returns The builder instance for method chaining
+     * @throws {TypeError} If any parameters are invalid:
+     *   - Invalid retry policy
+     *   - maxAttempts <= 0
+     *   - delay < 0
+     *
+     * @example
+     * ```typescript
+     * const client = HttpClient.newBuilder()
+     *   .retry(RetryPolicy.ON_SERVER_ERROR, 3, 1000) // Retry 3 times with 1s delay on 5xx errors
+     *   .build();
+     * ```
+     *
+     * @remarks
+     * - The first request is not counted as an attempt
+     * - Retries use exponential backoff with the specified delay as base
+     * - Network timeouts trigger retries according to the policy
+     * - Cancellation via abort signal stops retry attempts
+     */
+    retry(policy: RetryPolicy, maxAttempts: number, delay: number): Builder
 
     /**
      * Creates an immutable HttpClient instance with all configured settings.

@@ -1,8 +1,10 @@
 import { Builder, HttpClient } from "../HttpClient";
-import { Redirect } from "../util/Redirect";
-import { Priority } from "../util/Priority";
+import { Redirect } from "../req-types/Redirect";
+import { Priority } from "../req-types/Priority";
 import { HttpClientImpl } from "./HttpClientImpl";
-import { isFalsy, isIncluded, isType } from "./common/ObjectUtils";
+import { RetryConfig } from "./RetryConfig";
+import { RetryPolicy } from "../config-types/RetryPolicy";
+import { isFalsy, isIncluded, isType } from "./common/ValidationUtils";
 
 /**
  * @internal
@@ -12,11 +14,13 @@ export class HttpClientBuilderImpl implements Builder {
     private _connectTimeout: number;
     private _redirectPolicy: RequestRedirect;
     private _priority: RequestPriority;
+    private _retry: RetryConfig;
 
     public constructor() {
         this._connectTimeout = null;
         this._redirectPolicy = Redirect.FOLLOW;
         this._priority = Priority.AUTO;
+        this._retry = new RetryConfig(RetryPolicy.NEVER, null, null)
     }
 
     public connectTimeout(duration: number): Builder {
@@ -43,11 +47,18 @@ export class HttpClientBuilderImpl implements Builder {
         return this;
     }
 
+    public retry(policy: RetryPolicy, maxAttempts: number, delay: number): Builder {
+        RetryConfig.ensureRetryConfig(policy, maxAttempts, delay)
+        this._retry = new RetryConfig(policy, maxAttempts, delay);
+        return this;
+    }
+
     public build(): HttpClient {
         return new HttpClientImpl(
             this._connectTimeout,
             this._redirectPolicy,
-            this._priority
+            this._priority,
+            this._retry
         );
     }
 }

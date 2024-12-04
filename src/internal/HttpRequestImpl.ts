@@ -1,5 +1,5 @@
 import { HttpRequestType } from "../HttpRequest";
-import { HttpMethod } from "../util/HttpMethod";
+import { HttpMethod } from "../req-types/HttpMethod";
 
 /**
  * @internal
