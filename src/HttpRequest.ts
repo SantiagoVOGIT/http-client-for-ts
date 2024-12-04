@@ -1,9 +1,9 @@
 import { HttpRequestBuilderImpl } from "./internal/HttpRequestBuilderImpl";
-import { HttpMethod } from "./util/HttpMethod";
-import { CachePolicy } from "./util/CachePolicy";
-import { CredentialMode } from "./util/CredentialMode";
-import { HttpRequestMode } from "./util/HttpRequestMode";
-import { Referrer } from "./util/Referrer";
+import { HttpMethod } from "./req-types/HttpMethod";
+import { CachePolicy } from "./req-types/CachePolicy";
+import { CredentialMode } from "./req-types/CredentialMode";
+import { HttpRequestMode } from "./req-types/HttpRequestMode";
+import { Referrer } from "./req-types/Referrer";
 
 /**
  * An immutable representation of an HTTP request.

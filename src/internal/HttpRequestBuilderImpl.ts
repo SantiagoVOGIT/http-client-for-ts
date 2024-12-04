@@ -1,11 +1,11 @@
 import { Builder, HttpRequest } from "../HttpRequest";
-import { HttpMethod } from "../util/HttpMethod";
-import { HttpRequestMode } from "../util/HttpRequestMode";
-import { CredentialMode } from "../util/CredentialMode";
-import { CachePolicy } from "../util/CachePolicy";
-import { Referrer } from "../util/Referrer";
+import { HttpMethod } from "../req-types/HttpMethod";
+import { HttpRequestMode } from "../req-types/HttpRequestMode";
+import { CredentialMode } from "../req-types/CredentialMode";
+import { CachePolicy } from "../req-types/CachePolicy";
+import { Referrer } from "../req-types/Referrer";
 import { HttpRequestImpl } from "./HttpRequestImpl";
-import { isFalsy, isIncluded, isType } from "./common/ObjectUtils";
+import { isFalsy, isIncluded, isType } from "./common/ValidationUtils";
 
 /**
  * @internal

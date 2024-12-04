@@ -4,6 +4,8 @@ import { HttpResponse } from "../HttpResponse";
 import { HttpResponseImpl } from "./HttpResponseImpl";
 import { HttpConnectTimeoutException } from "../error/HttpConnectTimeoutException";
 import { HttpTimeoutException } from "../error/HttpTimeoutException";
+import { RetryConfig } from "./RetryConfig";
+import { RetryPolicy } from "../config-types/RetryPolicy";
 
 /**
  * @internal
@@ -14,15 +16,18 @@ export class HttpClientImpl implements HttpClientType {
     private readonly _redirectPolicy: RequestRedirect;
     private readonly _priority: RequestPriority;
     private readonly _controller: AbortController;
+    private readonly _retry: RetryConfig;
 
     public constructor(
         connectTimeout: number,
         redirectPolicy: RequestRedirect,
-        priority: RequestPriority
+        priority: RequestPriority,
+        retry: RetryConfig
     ) {
         this._connectTimeout = connectTimeout;
         this._redirectPolicy = redirectPolicy;
         this._priority = priority;
+        this._retry = retry;
         this._controller = new AbortController();
 
         Object.freeze(this);
@@ -44,20 +49,24 @@ export class HttpClientImpl implements HttpClientType {
         if (!request) {
             throw new TypeError("Invalid request");
         }
-        try {
-            const init: Readonly<RequestInit> = this.createRequestInit(request);
-            const timeoutId: number = this.setupTimeout(init, request);
 
-            const response: Response = await fetch(request.url(), init);
+        if (this._retry.retryPolicy() === RetryPolicy.NEVER) {
+            try {
+                const init: Readonly<RequestInit> = this.createRequestInit(request);
+                const timeoutId: number = this.setupTimeout(request);
 
-            if (timeoutId) {
-                clearTimeout(timeoutId);
+                const response: Response = await fetch(request.url(), init);
+
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+
+                return await this.createHttpResponse<T>(response, request);
+            } catch (error) {
+                throw this.handleRequestError(error);
             }
-
-            return await this.createHttpResponse<T>(response, request);
-        } catch (error) {
-            throw this.handleRequestError(error);
         }
+        return this.sendWithRetry<T>(request);
     }
 
     public abort(): void {
@@ -68,7 +77,7 @@ export class HttpClientImpl implements HttpClientType {
         return Object.freeze({
             method: request.method(),
             headers: request.headers(),
-            body: this.serializeBody<unknown>(request.body<unknown>()),
+            body: this.serializeBody(request.body()),
             mode: request.mode(),
             credentials: request.credentials(),
             cache: request.cache(),
@@ -81,7 +90,7 @@ export class HttpClientImpl implements HttpClientType {
         });
     }
 
-    private setupTimeout(init: RequestInit, request: HttpRequest): number {
+    private setupTimeout(request: HttpRequest): number {
         const timeout: number = request.timeout() || this._connectTimeout;
         if (!timeout) {
             return null;
@@ -198,5 +207,78 @@ export class HttpClientImpl implements HttpClientType {
             return error;
         }
         return new Error("An unexpected error has occurred: " + String(error));
+    }
+
+    private async sendWithRetry<T>(request: HttpRequest): Promise<HttpResponse<T>> {
+        let lastError: Error;
+        let attempts: number = 0;
+        const maxAttempts: number = this._retry.maxAttempts();
+
+        while (attempts < maxAttempts) {
+            try {
+                const init: Readonly<RequestInit> = this.createRequestInit(request);
+                const timeoutId: number = this.setupTimeout(request);
+
+                const response: Response = await fetch(request.url(), init);
+
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                }
+
+                if (this.shouldRetryForStatus(response.status)) {
+                    attempts++;
+                    await this.sleep(this._retry.delay());
+                    continue;
+                }
+
+                return await this.createHttpResponse<T>(response, request);
+            } catch (error) {
+                lastError = this.handleRequestError(error);
+
+
+                if (this.shouldRetryForError(lastError)) {
+                    attempts++;
+                    await this.sleep(this._retry.delay());
+                    continue;
+                }
+
+                throw lastError;
+            }
+        }
+
+        throw lastError || new Error('Max retry attempts reached');
+    }
+
+    private shouldRetryForStatus(status: number): boolean {
+        const policy: RetryPolicy = this._retry.retryPolicy();
+
+        switch (policy) {
+            case RetryPolicy.NEVER:
+                return false;
+            case RetryPolicy.ON_SERVER_ERROR:
+                return status >= 500;
+            case RetryPolicy.ALWAYS:
+                return status !== 200;
+            default:
+                return false;
+        }
+    }
+
+    private shouldRetryForError(error: Error): boolean {
+        const policy: RetryPolicy = this._retry.retryPolicy();
+
+        switch (policy) {
+            case RetryPolicy.NEVER:
+                return false;
+            case RetryPolicy.ON_NETWORK_ERROR:
+            case RetryPolicy.ALWAYS:
+                return error instanceof HttpConnectTimeoutException;
+            default:
+                return false;
+        }
+    }
+
+    private sleep(ms: number): Promise<void> {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }

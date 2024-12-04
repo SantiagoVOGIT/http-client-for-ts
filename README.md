@@ -12,6 +12,7 @@ A modern TypeScript HTTP client library inspired by Java's HttpClient design, pr
 - ⚡ Modern async/await interface with Promise-based operations
 - 🔄 Built-in serialization/deserialization for request and response bodies
 - ⏱️ Configurable request timeouts and cancellation support
+- 🔁 Flexible retry policies with configurable attempts and delays
 - 🔍 Query parameter handling
 - 🔒 Thread-safe immutable request and response objects
 - ⚡ High performance through native Fetch API
