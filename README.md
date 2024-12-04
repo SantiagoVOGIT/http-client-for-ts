@@ -11,11 +11,11 @@ A modern TypeScript HTTP client library inspired by Java's HttpClient design, pr
 - 🛠️ Fluent builder pattern API for request and client configuration
 - ⚡ Modern async/await interface with Promise-based operations
 - 🔄 Built-in serialization/deserialization for request and response bodies
-- ⏱️ Configurable request timeouts and cancelation support
+- ⏱️ Configurable request timeouts and cancellation support
 - 🔍 Query parameter handling
 - 🔒 Thread-safe immutable request and response objects
 - ⚡ High performance through native Fetch API
-- 📦 Minimal bundle size impac
+- 📦 Minimal bundle size impact
 - 🌐 Complete access to underlying Fetch API capabilities
 
 ## Prerequisites

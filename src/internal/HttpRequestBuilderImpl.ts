@@ -5,6 +5,7 @@ import { CredentialMode } from "../util/CredentialMode";
 import { CachePolicy } from "../util/CachePolicy";
 import { Referrer } from "../util/Referrer";
 import { HttpRequestImpl } from "./HttpRequestImpl";
+import { isFalsy, isIncluded, isType } from "./common/ObjectUtils";
 
 /**
  * @internal
@@ -39,7 +40,7 @@ export class HttpRequestBuilderImpl implements Builder {
     }
 
     public url(url: URL | string): Builder {
-        if (!url) {
+        if (isFalsy(url)) {
             throw new TypeError("Invalid URL: " + url);
         }
         this._url = new URL(url.toString());
@@ -54,7 +55,7 @@ export class HttpRequestBuilderImpl implements Builder {
     }
 
     public headers(headers: Record<string, string>): Builder {
-        if (!headers) {
+        if (isFalsy(headers)) {
             throw new TypeError("Invalid headers");
         }
         Object.entries(headers).forEach(([key, value]: [string, string]): void => {
@@ -65,7 +66,7 @@ export class HttpRequestBuilderImpl implements Builder {
     }
 
     public timeout(duration: number): Builder {
-        if (!duration || typeof duration !== 'number') {
+        if (isFalsy(duration) || !isType(duration, 'number')) {
             throw new TypeError("invalid duration: " + duration)
         }
         if (duration <= 0) {
@@ -76,7 +77,7 @@ export class HttpRequestBuilderImpl implements Builder {
     }
 
     public method(method: HttpMethod): Builder {
-        if (!method || !Object.values(HttpMethod).includes(method)) {
+        if (isFalsy(method) || !isIncluded(HttpMethod, method)) {
             throw new TypeError("Invalid HTTP method: " + method);
         }
         this._method = method;
@@ -95,7 +96,7 @@ export class HttpRequestBuilderImpl implements Builder {
     }
 
     public queryParams(params: Record<string, string>): Builder {
-        if (!params) {
+        if (isFalsy(params)) {
             throw new TypeError("Invalid query params");
         }
         Object.entries(params).forEach(([key, value]: [string, string]): void => {
@@ -116,7 +117,7 @@ export class HttpRequestBuilderImpl implements Builder {
     }
 
     public keepalive(enable: boolean): Builder {
-        if (!enable || typeof enable !== 'boolean') {
+        if (isFalsy(enable) || !isType(enable, 'boolean')) {
             throw new TypeError("Invalid keepalive mode: " + enable)
         }
         this._keepalive = enable;
@@ -163,28 +164,28 @@ export class HttpRequestBuilderImpl implements Builder {
     }
 
     private ensureRequest(): void {
-        if (!this._url) {
+        if (isFalsy(this._url)) {
             throw new TypeError("Valid URL is required: " + this._url);
         }
-        if (!this._method) {
+        if (isFalsy(this._method)) {
             throw new TypeError("Valid HTTP method is required: " + this._method);
         }
     }
 
     private ensureHeaders(name: string, value: string): void {
-        if (!name || typeof name !== 'string') {
+        if (isFalsy(name) || !isType(name, 'string')) {
             throw new TypeError("Invalid header name: " + name)
         }
-        if (!value || typeof value !== 'string') {
+        if (isFalsy(value) || !isType(value, 'string')) {
             throw new TypeError("Invalid header value: " + value)
         }
     }
 
     private ensureQueryParams(name: string, value: string): void {
-        if (!name || typeof name !== 'string') {
+        if (isFalsy(name) || !isType(name, 'string')) {
             throw new TypeError("Invalid query parameter name: " + name)
         }
-        if (!value || typeof value !== 'string') {
+        if (isFalsy(value) || !isType(value, 'string')) {
             throw new TypeError("Invalid query parameter value: " + value)
         }
     }

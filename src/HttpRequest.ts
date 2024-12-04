@@ -30,8 +30,6 @@ import { Referrer } from "./util/Referrer";
  * - Headers and query parameters maintain insertion order
  *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Request|MDN Request API}
- *
- * @public
  */
 export abstract class HttpRequest {
 
@@ -60,8 +58,6 @@ export abstract class HttpRequest {
      *   .body<ExampleData>(body)
      *   .build();
      * ```
-     *
-     * @public
      */
     public static newBuilder(): Builder {
         return new HttpRequestBuilderImpl()
@@ -71,8 +67,6 @@ export abstract class HttpRequest {
      * Gets the request URL including query parameters.
      *
      * @returns The complete URL with query string
-     *
-     * @public
      */
     public abstract url(): URL;
 
@@ -80,8 +74,6 @@ export abstract class HttpRequest {
      * Gets the request headers.
      *
      * @returns The {@link Headers} object containing all request headers
-     *
-     * @public
      */
     public abstract headers(): Headers;
 
@@ -89,8 +81,6 @@ export abstract class HttpRequest {
      * Gets the request timeout in milliseconds.
      *
      * @returns The timeout duration, or null if no timeout set
-     *
-     * @public
      */
     public abstract timeout(): number;
 
@@ -98,8 +88,6 @@ export abstract class HttpRequest {
      * Gets the HTTP method.
      *
      * @returns The HTTP method string (GET, POST, etc.)
-     *
-     * @public
      */
     public abstract method(): string;
 
@@ -108,8 +96,6 @@ export abstract class HttpRequest {
      *
      * @template T - The body type
      * @returns The body content, or null if body no set
-     *
-     * @public
      */
     public abstract body<T>(): T;
 
@@ -117,8 +103,6 @@ export abstract class HttpRequest {
      * Gets the URL query parameters.
      *
      * @returns The URLSearchParams object containing query parameters
-     *
-     * @public
      */
     public abstract queryParams(): URLSearchParams;
 
@@ -126,8 +110,6 @@ export abstract class HttpRequest {
      * Gets the cache mode.
      *
      * @returns The {@link CachePolicy} setting
-     *
-     * @public
      */
     public abstract cache(): RequestCache;
 
@@ -135,8 +117,6 @@ export abstract class HttpRequest {
      * Gets the credentials mode.
      *
      * @returns The {@link CredentialMode} setting
-     *
-     * @public
      */
     public abstract credentials(): RequestCredentials;
 
@@ -144,8 +124,6 @@ export abstract class HttpRequest {
      * Gets whether keepalive is enabled.
      *
      * @returns True if keepalive is enabled, false otherwise
-     *
-     * @public
      */
     public abstract keepalive(): boolean;
 
@@ -153,8 +131,6 @@ export abstract class HttpRequest {
      * Gets the request mode (CORS policy).
      *
      * @returns The {@link HttpRequestMode} setting
-     *
-     * @public
      */
     public abstract mode(): RequestMode;
 
@@ -162,8 +138,6 @@ export abstract class HttpRequest {
      * Gets the abort signal.
      *
      * @returns The {@link AbortSignal} instance, or null if none set
-     *
-     * @public
      */
     public abstract signal(): AbortSignal;
 
@@ -171,8 +145,6 @@ export abstract class HttpRequest {
      * Gets the request referrer URL.
      *
      * @returns The referrer URL string, or empty string if none set
-     *
-     * @public
      */
     public abstract referrer(): string;
 
@@ -180,12 +152,13 @@ export abstract class HttpRequest {
      * Gets the referrer policy.
      *
      * @returns The {@link Referrer} policy setting
-     *
-     * @public
      */
     public abstract referrerPolicy(): ReferrerPolicy;
 }
 
+/**
+ * @internal
+ */
 export type { HttpRequest as HttpRequestType };
 
 /**
@@ -193,8 +166,6 @@ export type { HttpRequest as HttpRequestType };
  *
  * Provides a fluent API to construct immutable {@link HttpRequest} instances with
  * customized settings for making HTTP requests.
- *
- * @public
  */
 export interface Builder {
 
@@ -211,8 +182,6 @@ export interface Builder {
      * // or
      * url(new URL("https://api.example.com/data"))
      * ```
-     *
-     * @public
      */
     url(url: URL | string): Builder;
 
@@ -223,8 +192,6 @@ export interface Builder {
      * @param value - The header value
      * @returns The builder instance for method chaining
      * @throws {TypeError} If name or value is invalid
-     *
-     * @public
      */
     header(name: string, value: string): Builder;
 
@@ -234,8 +201,6 @@ export interface Builder {
      * @param headers - Record of header names to values
      * @returns The builder instance for method chaining
      * @throws {TypeError} If headers object is invalid
-     *
-     * @public
      */
     headers(headers: Record<string, string>): Builder;
 
@@ -245,8 +210,6 @@ export interface Builder {
      * @param duration - Timeout duration in ms
      * @returns The builder instance for method chaining
      * @throws {TypeError} If duration is not a positive number
-     *
-     * @public
      */
     timeout(duration: number): Builder;
 
@@ -261,8 +224,6 @@ export interface Builder {
      * ```typescript
      * method(HttpMethod.POST)
      * ```
-     *
-     * @public
      */
     method(method: HttpMethod | string): Builder;
 
@@ -282,7 +243,6 @@ export interface Builder {
      * - ArrayBuffer
      * - URLSearchParams
      * - ReadableStream
-     *
      */
     body<T>(body: T): Builder;
 
@@ -293,8 +253,6 @@ export interface Builder {
      * @param value - Parameter value
      * @returns The builder instance for method chaining
      * @throws {TypeError} If name or value is invalid
-     *
-     * @public
      */
     queryParam(name: string, value: string): Builder;
 
@@ -304,8 +262,6 @@ export interface Builder {
      * @param params - Record of parameter names to values
      * @returns The builder instance for method chaining
      * @throws {TypeError} If params object is invalid
-     *
-     * @public
      */
     queryParams(params: Record<string, string>): Builder;
 
@@ -314,8 +270,6 @@ export interface Builder {
      *
      * @param cacheMode - The {@link CachePolicy} to use
      * @returns The builder instance for method chaining
-     *
-     * @public
      */
     cache(cacheMode: CachePolicy): Builder;
 
@@ -324,8 +278,6 @@ export interface Builder {
      *
      * @param credentials - The {@link CredentialMode} to use
      * @returns The builder instance for method chaining
-     *
-     * @public
      */
     credentials(credentials: CredentialMode): Builder;
 
@@ -335,8 +287,6 @@ export interface Builder {
      * @param enable - True to enable keepalive
      * @returns The builder instance for method chaining
      * @throws {TypeError} If enable is not a boolean or falsy
-     *
-     * @public
      */
     keepalive(enable: boolean): Builder;
 
@@ -345,8 +295,6 @@ export interface Builder {
      *
      * @param mode - The {@link HttpRequestMode} to use
      * @returns The builder instance for method chaining
-     *
-     * @public
      */
     mode(mode: HttpRequestMode): Builder;
 
@@ -355,8 +303,6 @@ export interface Builder {
      *
      * @param signal - The AbortSignal to use
      * @returns The builder instance for method chaining
-     *
-     * @public
      */
     signal(signal: AbortSignal): Builder;
 
@@ -365,8 +311,6 @@ export interface Builder {
      *
      * @param referrer - The referrer URL
      * @returns The builder instance for method chaining
-     *
-     * @public
      */
     referrer(referrer: string): Builder;
 
@@ -376,8 +320,6 @@ export interface Builder {
      *
      * @param policy - The {@link Referrer} policy to use
      * @returns The builder instance for method chaining
-     *
-     * @public
      */
     referrerPolicy(policy: Referrer): Builder;
 
@@ -386,8 +328,6 @@ export interface Builder {
      *
      * @returns A new configured {@link HttpRequest} instance
      * @throws {TypeError} If required fields ({@link url}, {@link method}) are not set or are invalid
-     *
-     * @public
      */
     build(): HttpRequest;
 }

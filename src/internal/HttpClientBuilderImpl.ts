@@ -2,6 +2,7 @@ import { Builder, HttpClient } from "../HttpClient";
 import { Redirect } from "../util/Redirect";
 import { Priority } from "../util/Priority";
 import { HttpClientImpl } from "./HttpClientImpl";
+import { isFalsy, isIncluded, isType } from "./common/ObjectUtils";
 
 /**
  * @internal
@@ -19,7 +20,7 @@ export class HttpClientBuilderImpl implements Builder {
     }
 
     public connectTimeout(duration: number): Builder {
-        if (!duration || typeof duration !== 'number') {
+        if (isFalsy(duration) || !isType(duration, 'number')) {
             throw new TypeError("invalid duration: " + duration)
         }
         if (duration <= 0) {
@@ -35,7 +36,7 @@ export class HttpClientBuilderImpl implements Builder {
     }
 
     public priority(priority: Priority): Builder {
-        if (!priority || !Object.values(Priority).includes(priority)) {
+        if (isFalsy(priority) || !isIncluded(Priority, priority)) {
             throw new TypeError("Invalid priority: " + priority)
         }
         this._priority = priority;

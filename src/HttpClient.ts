@@ -33,8 +33,6 @@ import { Priority } from "./util/Priority";
  *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API MDN Fetch API} Base implementation
  * @see {@link https://docs.oracle.com/en/java/javase/11/docs/api/java.net.http/java/net/http/HttpClient.html Java HttpClient} API design inspiration
- *
- * @public
  */
 export abstract class HttpClient {
 
@@ -58,8 +56,6 @@ export abstract class HttpClient {
      * - {@link connectTimeout}: `null`
      *
      * @see These defaults are based on those used by the {@link https://developer.mozilla.org/en-US/docs/Web/API/RequestInit|Fetch API}
-     *
-     * @public
      */
     public static newHttpClient(): HttpClient {
         return this.newBuilder().build();
@@ -78,8 +74,6 @@ export abstract class HttpClient {
      *   .priority(Priority.HIGH)
      *   .build();
      * ```
-     *
-     * @public
      */
     public static newBuilder(): Builder {
         return new HttpClientBuilderImpl();
@@ -89,8 +83,6 @@ export abstract class HttpClient {
      * Gets the connection timeout in milliseconds for this client.
      *
      * @returns The connection timeout duration in milliseconds, or `null` if no timeout is set
-     *
-     * @public
      */
     public abstract connectTimeout(): number;
 
@@ -98,8 +90,6 @@ export abstract class HttpClient {
      * Gets the redirect policy for this client.
      *
      * @returns The {@link RequestRedirect} policy for handling HTTP redirects
-     *
-     * @public
      */
     public abstract followRedirects(): RequestRedirect;
 
@@ -107,8 +97,6 @@ export abstract class HttpClient {
      * Gets the configured request priority for this client.
      *
      * @returns The {@link RequestPriority} level for HTTP requests
-     *
-     * @public
      */
     public abstract priority(): RequestPriority;
 
@@ -149,8 +137,6 @@ export abstract class HttpClient {
      * - Follows configured redirect policy ({@link Redirect})
      * - Uses specified request priority ({@link Priority})
      * - Can be aborted via {@link abort} method
-     *
-     * @public
      */
     public abstract send<T>(request: HttpRequest): Promise<HttpResponse<T>>;
 
@@ -159,6 +145,7 @@ export abstract class HttpClient {
      * Any ongoing request will be aborted and its promise will reject.
      */
     public abstract abort(): void;
+
 }
 
 /**
@@ -185,8 +172,6 @@ export type { HttpClient as HttpClientType };
  * All builder methods validate their inputs and throw {@link TypeError} for invalid values.
  * Settings not explicitly configured will use sensible defaults based on the Fetch API.
  * The builder is intended to be used through {@link HttpClient.newBuilder}.
- *
- * @public
  */
 export interface Builder {
 
@@ -197,8 +182,6 @@ export interface Builder {
      * @param duration - Time in milliseconds to wait for connection establishment
      * @returns The builder instance for method chaining
      * @throws {TypeError} If duration is less than 0 or not a number
-     *
-     * @public
      */
     connectTimeout(duration: number): Builder;
 
@@ -208,8 +191,6 @@ export interface Builder {
      *
      * @param policy - The {@link Redirect} policy to use
      * @returns The builder instance for method chaining
-     *
-     * @public
      */
     followRedirects(policy: Redirect): Builder;
 
@@ -220,8 +201,6 @@ export interface Builder {
      * @param priority - The {@link Priority} to indicate loading priority
      * @returns The builder instance for method chaining
      * @throws {TypeError} If priority is not one of the valid enum values
-     *
-     * @public
      */
     priority(priority: Priority): Builder;
 
@@ -229,8 +208,6 @@ export interface Builder {
      * Creates an immutable HttpClient instance with all configured settings.
      *
      * @returns A new configured HttpClient instance
-     *
-     * @public
      */
     build(): HttpClient;
 }

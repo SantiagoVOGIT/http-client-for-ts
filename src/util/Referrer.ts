@@ -3,8 +3,6 @@
  *
  * @see [MDN Referrer Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy)
  * @see [W3C Referrer Policy Spec](https://w3c.github.io/webappsec-referrer-policy/)
- *
- * @public
  */
 export enum Referrer {
     NO_REFERRER = "no-referrer",

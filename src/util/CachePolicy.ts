@@ -3,8 +3,6 @@
  *
  * @see [MDN Cache API](https://developer.mozilla.org/en-US/docs/Web/API/Request/cache)
  * @see [Fetch Standard - Cache Modes](https://fetch.spec.whatwg.org/#concept-request-cache-mode)
- *
- * @public
  */
 export enum CachePolicy {
     DEFAULT = 'default',

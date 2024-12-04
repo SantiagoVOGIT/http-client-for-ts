@@ -3,8 +3,6 @@
  *
  * @see [MDN Request Mode](https://developer.mozilla.org/en-US/docs/Web/API/Request/mode)
  * @see [Fetch Standard - CORS Protocol](https://fetch.spec.whatwg.org/#cors-protocol)
- *
- * @public
  */
 export enum HttpRequestMode {
     NAVIGATE = 'navigate',

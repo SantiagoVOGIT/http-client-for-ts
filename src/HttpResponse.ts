@@ -34,8 +34,6 @@ import { HttpRequest } from "./HttpRequest";
  * - Raw Response object available via {@link primitiveResponse}
  *
  * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Response|MDN Response API}
- *
- * @public
  */
 export interface HttpResponse<T> {
 
@@ -43,8 +41,6 @@ export interface HttpResponse<T> {
      * Gets the HTTP status code of the response.
      *
      * @returns The numeric HTTP status code (e.g. 200, 404, 500)
-     *
-     * @public
      */
     statusCode(): number;
 
@@ -52,8 +48,6 @@ export interface HttpResponse<T> {
      * Gets the original request that generated this response.
      *
      * @returns The {@link HttpRequest} instance
-     *
-     * @public
      */
     request(): HttpRequest;
 
@@ -61,8 +55,6 @@ export interface HttpResponse<T> {
      * Gets the response headers.
      *
      * @returns The {@link Headers} object containing all response headers
-     *
-     * @public
      */
     headers(): Headers;
 
@@ -71,8 +63,6 @@ export interface HttpResponse<T> {
      *
      * @template T - The expected body type
      * @returns The response body of type T, or null if no body
-     *
-     * @public
      */
     body(): T;
 
@@ -80,8 +70,6 @@ export interface HttpResponse<T> {
      * Gets the final URL after following any redirects.
      *
      * @returns The response URL
-     *
-     * @public
      */
     url(): URL;
 
@@ -89,8 +77,6 @@ export interface HttpResponse<T> {
      * Gets the query parameters from the response URL.
      *
      * @returns The {@link URLSearchParams} containing URL query parameters
-     *
-     * @public
      */
     queryParams(): URLSearchParams;
 
@@ -98,8 +84,6 @@ export interface HttpResponse<T> {
      * Checks if the response status is in the successful range (200-299).
      *
      * @returns True if status is successful, false otherwise
-     *
-     * @public
      */
     ok(): boolean;
 
@@ -107,8 +91,6 @@ export interface HttpResponse<T> {
      * Checks if the response is the result of a redirect.
      *
      * @returns True if response was redirected, false otherwise
-     *
-     * @public
      */
     redirected(): boolean;
 
@@ -116,8 +98,6 @@ export interface HttpResponse<T> {
      * Gets the status text of the response.
      *
      * @returns The status text string (e.g. "OK", "Not Found")
-     *
-     * @public
      */
     status(): string;
 
@@ -125,8 +105,6 @@ export interface HttpResponse<T> {
      * Gets the response type as defined by the Fetch API.
      *
      * @returns The {@link ResponseType} indicating how the response was obtained
-     *
-     * @public
      */
     responseType(): ResponseType;
 
@@ -150,8 +128,6 @@ export interface HttpResponse<T> {
      * can only be read once. The HttpResponse methods should be preferred when possible.
      *
      * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/Response|MDN Response API}
-     *
-     * @public
      */
     primitiveResponse(): Response;
 }
