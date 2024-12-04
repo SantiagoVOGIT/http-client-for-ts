@@ -9,8 +9,8 @@ import { HttpClientImpl } from "./HttpClientImpl";
 export class HttpClientBuilderImpl implements Builder {
 
     private _connectTimeout: number;
-    private _redirectPolicy: Redirect;
-    private _priority: Priority;
+    private _redirectPolicy: RequestRedirect;
+    private _priority: RequestPriority;
 
     public constructor() {
         this._connectTimeout = null;

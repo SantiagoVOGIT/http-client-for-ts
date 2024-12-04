@@ -97,7 +97,7 @@ export abstract class HttpRequest {
     /**
      * Gets the HTTP method.
      *
-     * @returns The HTTP method string (GET, POST, etc)
+     * @returns The HTTP method string (GET, POST, etc.)
      *
      * @public
      */
@@ -107,7 +107,7 @@ export abstract class HttpRequest {
      * Gets the request body.
      *
      * @template T - The body type
-     * @returns The body content, or null if no body set
+     * @returns The body content, or null if body no set
      *
      * @public
      */
@@ -152,7 +152,7 @@ export abstract class HttpRequest {
     /**
      * Gets the request mode (CORS policy).
      *
-     * @returns The {@link HttpRequestMode} settin
+     * @returns The {@link HttpRequestMode} setting
      *
      * @public
      */
@@ -283,7 +283,6 @@ export interface Builder {
      * - URLSearchParams
      * - ReadableStream
      *
-     * @public
      */
     body<T>(body: T): Builder;
 

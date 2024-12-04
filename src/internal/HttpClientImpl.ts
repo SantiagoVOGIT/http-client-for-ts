@@ -1,6 +1,4 @@
 import { HttpClientType } from "../HttpClient";
-import { Redirect } from "../util/Redirect";
-import { Priority } from "../util/Priority";
 import { HttpRequest } from "../HttpRequest";
 import { HttpResponse } from "../HttpResponse";
 import { HttpResponseImpl } from "./HttpResponseImpl";
@@ -19,8 +17,8 @@ export class HttpClientImpl implements HttpClientType {
 
     public constructor(
         connectTimeout: number,
-        redirectPolicy: Redirect,
-        priority: Priority
+        redirectPolicy: RequestRedirect,
+        priority: RequestPriority
     ) {
         this._connectTimeout = connectTimeout;
         this._redirectPolicy = redirectPolicy;
@@ -70,7 +68,7 @@ export class HttpClientImpl implements HttpClientType {
         return Object.freeze({
             method: request.method(),
             headers: request.headers(),
-            body: this.serializeBody(request.body()),
+            body: this.serializeBody<unknown>(request.body<unknown>()),
             mode: request.mode(),
             credentials: request.credentials(),
             cache: request.cache(),
@@ -106,7 +104,6 @@ export class HttpClientImpl implements HttpClientType {
             new URL(response.url),
             request,
             response,
-            null
         );
     }
 

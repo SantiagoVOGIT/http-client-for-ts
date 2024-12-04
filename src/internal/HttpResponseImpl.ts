@@ -8,7 +8,6 @@ export class HttpResponseImpl<T> implements HttpResponse<T> {
 
     private readonly _statusCode: number;
     private readonly _request: HttpRequest;
-    private readonly _previousResponse: HttpResponse<T>;
     private readonly _headers: Headers;
     private readonly _body: T;
     private readonly _url: URL;
@@ -21,14 +20,12 @@ export class HttpResponseImpl<T> implements HttpResponse<T> {
         url: URL,
         request: HttpRequest,
         primitiveResponse: Response,
-        previousResponse: HttpResponse<T> = null,
     ) {
         this._statusCode = statusCode;
         this._body = body;
         this._headers = headers;
         this._url = url;
         this._request = request;
-        this._previousResponse = previousResponse;
         this._primitiveResponse = primitiveResponse;
 
         Object.freeze(this);
@@ -40,10 +37,6 @@ export class HttpResponseImpl<T> implements HttpResponse<T> {
 
     public request(): HttpRequest {
         return this._request;
-    }
-
-    public previousResponse(): HttpResponse<T> {
-        return this._previousResponse;
     }
 
     public headers(): Headers {

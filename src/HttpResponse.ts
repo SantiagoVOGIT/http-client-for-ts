@@ -30,7 +30,6 @@ import { HttpRequest } from "./HttpRequest";
  * @remarks
  * - Response body is automatically deserialized based on Content-Type
  * - Headers and query parameters are immutable
- * - Provides access to redirect chain through {@link previousResponse}
  * - Original request is accessible through {@link request} method
  * - Raw Response object available via {@link primitiveResponse}
  *
@@ -57,15 +56,6 @@ export interface HttpResponse<T> {
      * @public
      */
     request(): HttpRequest;
-
-    /**
-     * Gets the previous response in a redirect chain.
-     *
-     * @returns The previous {@link HttpResponse} instance, or null if this is the first response
-     *
-     * @public
-     */
-    previousResponse(): HttpResponse<T>;
 
     /**
      * Gets the response headers.
