@@ -6,6 +6,7 @@ import { HttpConnectTimeoutException } from "../error/HttpConnectTimeoutExceptio
 import { HttpTimeoutException } from "../error/HttpTimeoutException";
 import { RetryConfig } from "./RetryConfig";
 import { RetryPolicy } from "../config-types/RetryPolicy";
+import { isFalsy, isType } from "./common/ValidationUtils";
 
 /**
  * @internal
@@ -17,6 +18,13 @@ export class HttpClientImpl implements HttpClientType {
     private readonly _priority: RequestPriority;
     private readonly _controller: AbortController;
     private readonly _retry: RetryConfig;
+
+    public readonly JSON_MIME_TYPES: string[] = ['application/json', 'application/problem+json', 'application/ld+json'];
+    public readonly TEXT_MIME_TYPES: string[] =
+        ['text/plain', 'text/html', 'text/css', 'text/javascript', 'application/javascript', 'application/ecmascript', 'application/xml', 'text/xml'];
+    public readonly BINARY_MIME_TYPES: string[] = ['application/json', 'application/problem+json', 'application/ld+json'];
+    public readonly FORM_MIME_TYPES: string[] = ['multipart/form-data', 'application/x-www-form-urlencoded'];
+    private readonly HTTP_NO_CONTENT: number = 204;
 
     public constructor(
         connectTimeout: number,
@@ -46,31 +54,59 @@ export class HttpClientImpl implements HttpClientType {
     }
 
     public async send<T>(request: HttpRequest): Promise<HttpResponse<T>> {
-        if (!request) {
+        if (isFalsy(request)) {
             throw new TypeError("Invalid request");
         }
-
-        if (this._retry.retryPolicy() === RetryPolicy.NEVER) {
-            try {
-                const init: Readonly<RequestInit> = this.createRequestInit(request);
-                const timeoutId: number = this.setupTimeout(request);
-
-                const response: Response = await fetch(request.url(), init);
-
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-
-                return await this.createHttpResponse<T>(response, request);
-            } catch (error) {
-                throw this.handleRequestError(error);
-            }
-        }
-        return this.sendWithRetry<T>(request);
+        return this._retry.retryPolicy() !== RetryPolicy.NEVER
+            ? this.executeWithRetry<T>(request)
+            : this.executeRequest<T>(request);
     }
 
     public abort(): void {
         this._controller.abort();
+    }
+
+    private async executeRequest<T>(request: HttpRequest): Promise<HttpResponse<T>> {
+        try {
+            const requestInit: RequestInit = this.createRequestInit(request);
+            const timeoutId: number = this.setupTimeout(request);
+
+            const response: Response = await fetch(request.url(), requestInit);
+            this.clearTimeout(timeoutId);
+
+            return await this.createHttpResponse<T>(response, request);
+        } catch (error) {
+            throw this.handleRequestError(error);
+        }
+    }
+
+    private async executeWithRetry<T>(request: HttpRequest): Promise<HttpResponse<T>> {
+        let attempts: number = 0;
+        let lastError: Error;
+
+        while (attempts < this._retry.maxAttempts()) {
+            try {
+                const response: HttpResponse<T> = await this.executeRequest<T>(request);
+
+                if (this.shouldRetryForStatus(response.statusCode())) {
+                    attempts++;
+                    await this.delay();
+                    continue;
+                }
+
+                return response;
+            } catch (error) {
+                lastError = this.handleRequestError(error);
+
+                if (this.shouldRetryForError(lastError)) {
+                    attempts++;
+                    await this.delay();
+                    continue;
+                }
+                throw lastError;
+            }
+        }
+        throw lastError || new Error('Max retry attempts reached');
     }
 
     private createRequestInit(request: HttpRequest): RequestInit {
@@ -85,52 +121,58 @@ export class HttpClientImpl implements HttpClientType {
             referrer: request.referrer(),
             referrerPolicy: request.referrerPolicy(),
             keepalive: request.keepalive(),
-            signal: this.createAbortSignal(request),
+            signal: this.getAbortSignal(request),
             priority: this._priority,
         });
     }
 
     private setupTimeout(request: HttpRequest): number {
         const timeout: number = request.timeout() || this._connectTimeout;
-        if (!timeout) {
-            return null;
-        }
-        return setTimeout((): void => {
-            this.abort();
-        }, timeout);
+        if (isFalsy(timeout)) return null;
+
+        return setTimeout((): void => this.abort(), timeout);
     }
 
-    private createAbortSignal(request: HttpRequest): AbortSignal {
+    private clearTimeout(timeoutId: number): void {
+        if (timeoutId) clearTimeout(timeoutId);
+    }
+
+    private getAbortSignal(request: HttpRequest): AbortSignal {
         return request.signal() || this._controller.signal;
     }
 
     private async createHttpResponse<T>(response: Response, request: HttpRequest): Promise<HttpResponse<T>> {
-        const body: T = await this.deserializeBody<T>(response);
+        const body: Awaited<T> = await this.deserializeBody<T>(response);
         return new HttpResponseImpl<T>(
             response.status,
             body,
             response.headers,
             new URL(response.url),
             request,
-            response,
+            response
         );
     }
 
     private serializeBody<T>(body: T): BodyInit {
-        if (!body) {
-            return null;
-        }
-        if (
+        if (isFalsy(body)) return null;
+        if (this.isDirectlySerializable(body)) return body as BodyInit;
+
+        return this.serializeToJson(body);
+    }
+
+    private isDirectlySerializable(body: unknown): boolean {
+        return (
             body instanceof Blob ||
             body instanceof ArrayBuffer ||
             body instanceof FormData ||
             body instanceof URLSearchParams ||
             body instanceof ReadableStream ||
-            typeof body === 'string' ||
+            isType(body, 'string') ||
             ArrayBuffer.isView(body)
-        ) {
-            return body as BodyInit;
-        }
+        );
+    }
+
+    private serializeToJson<T>(body: T): string {
         try {
             return JSON.stringify(body);
         } catch (error) {
@@ -140,118 +182,77 @@ export class HttpClientImpl implements HttpClientType {
     }
 
     private async deserializeBody<T>(response: Response): Promise<T> {
-        if (response.status === 204 || response.body === null) {
-            return null as T;
-        }
+        if (this.hasNoContent(response)) return null as T;
 
-        const contentType: string = response.headers.get('Content-Type') || '';
-        const mimeType: string = contentType.split(';')[0].toLowerCase().trim();
-
+        const mimeType: string = this.getMimeType(response);
         try {
-            switch (mimeType) {
-                case 'application/json':
-                case 'application/problem+json':
-                case 'application/ld+json':
-                    return await response.json();
-
-                case 'text/plain':
-                case 'text/html':
-                case 'text/css':
-                case 'text/javascript':
-                case 'application/javascript':
-                case 'application/ecmascript':
-                case 'application/xml':
-                case 'text/xml':
-                    return await response.text() as unknown as T;
-
-                case 'application/octet-stream':
-                case 'application/pdf':
-                case 'image/jpeg':
-                case 'image/png':
-                case 'image/gif':
-                case 'audio/mpeg':
-                case 'video/mp4':
-                    return await response.blob() as unknown as T;
-
-                case 'multipart/form-data':
-                case 'application/x-www-form-urlencoded':
-                    return await response.formData() as unknown as T;
-
-                default:
-                    try {
-                        return await response.json();
-                    } catch {
-                        return await response.text() as unknown as T;
-                    }
-            }
+            return await this.deserializeByMimeType<T>(response, mimeType);
         } catch (error) {
             const errorMessage: string = error instanceof Error ? error.message : String(error);
-            throw new TypeError(`Failed to deserialize response body with content-type '${contentType}': ${errorMessage}`);
+            throw new TypeError(
+                `Failed to deserialize response body with content-type '${mimeType}': ${errorMessage}`
+            );
+        }
+    }
+
+    private hasNoContent(response: Response): boolean {
+        return response.status === this.HTTP_NO_CONTENT || response.body === null;
+    }
+
+    private getMimeType(response: Response): string {
+        const contentType: string = response.headers.get('Content-Type') || '';
+        return contentType.split(';')[0].toLowerCase().trim();
+    }
+
+    private async deserializeByMimeType<T>(response: Response, mimeType: string): Promise<T> {
+        if (this.JSON_MIME_TYPES.includes(mimeType)) {
+            return await response.json();
+        }
+        if (this.TEXT_MIME_TYPES.includes(mimeType)) {
+            return await response.text() as unknown as T;
+        }
+        if (this.BINARY_MIME_TYPES.includes(mimeType)) {
+            return await response.blob() as unknown as T;
+        }
+        if (this.FORM_MIME_TYPES.includes(mimeType)) {
+            return await response.formData() as unknown as T;
+        }
+
+        return this.attemptJsonFallback<T>(response);
+    }
+
+    private async attemptJsonFallback<T>(response: Response): Promise<T> {
+        try {
+            return await response.json();
+        } catch {
+            return await response.text() as unknown as T;
         }
     }
 
     private handleRequestError(error: unknown): Error {
-        if (!error) {
+        if (isFalsy(error)) {
             return new Error("Unknown error occurred");
         }
-        if (error instanceof TypeError) {
-            const message: string = error.message.toLowerCase();
-            if (message.includes('failed to fetch')) {
-                return new HttpConnectTimeoutException("Connection could not be established with the server");
-            }
+        if (this.isNetworkError(error)) {
+            return new HttpConnectTimeoutException("Connection could not be established with the server");
         }
-        if (error instanceof Error) {
-            if (error.name === 'AbortError') {
-                return new HttpTimeoutException("Request exceeded configured timeout duration");
-            }
-            return error;
+        if (this.isTimeoutError(error)) {
+            return new HttpTimeoutException("Request exceeded configured timeout duration");
         }
-        return new Error("An unexpected error has occurred: " + String(error));
+        return error instanceof Error ? error : new Error("An unexpected error has occurred: " + String(error));
     }
 
-    private async sendWithRetry<T>(request: HttpRequest): Promise<HttpResponse<T>> {
-        let lastError: Error;
-        let attempts: number = 0;
-        const maxAttempts: number = this._retry.maxAttempts();
+    private isNetworkError(error: unknown): boolean {
+        return error instanceof TypeError &&
+            error.message.toLowerCase().includes('failed to fetch');
+    }
 
-        while (attempts < maxAttempts) {
-            try {
-                const init: Readonly<RequestInit> = this.createRequestInit(request);
-                const timeoutId: number = this.setupTimeout(request);
-
-                const response: Response = await fetch(request.url(), init);
-
-                if (timeoutId) {
-                    clearTimeout(timeoutId);
-                }
-
-                if (this.shouldRetryForStatus(response.status)) {
-                    attempts++;
-                    await this.sleep(this._retry.delay());
-                    continue;
-                }
-
-                return await this.createHttpResponse<T>(response, request);
-            } catch (error) {
-                lastError = this.handleRequestError(error);
-
-
-                if (this.shouldRetryForError(lastError)) {
-                    attempts++;
-                    await this.sleep(this._retry.delay());
-                    continue;
-                }
-
-                throw lastError;
-            }
-        }
-
-        throw lastError || new Error('Max retry attempts reached');
+    private isTimeoutError(error: unknown): boolean {
+        return error instanceof Error && error.name === 'AbortError';
     }
 
     private shouldRetryForStatus(status: number): boolean {
         const policy: RetryPolicy = this._retry.retryPolicy();
-
         switch (policy) {
             case RetryPolicy.NEVER:
                 return false;
@@ -266,7 +267,6 @@ export class HttpClientImpl implements HttpClientType {
 
     private shouldRetryForError(error: Error): boolean {
         const policy: RetryPolicy = this._retry.retryPolicy();
-
         switch (policy) {
             case RetryPolicy.NEVER:
                 return false;
@@ -278,7 +278,7 @@ export class HttpClientImpl implements HttpClientType {
         }
     }
 
-    private sleep(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    private async delay(): Promise<void> {
+        await new Promise(resolve => setTimeout(resolve, this._retry.delay()));
     }
 }

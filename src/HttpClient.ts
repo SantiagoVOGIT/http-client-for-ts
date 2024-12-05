@@ -56,7 +56,7 @@ export abstract class HttpClient {
      * - {@link priority}: `auto`
      * - {@link connectTimeout}: `null`
      *
-     * @see These defaults are based on those used by the {@link https://developer.mozilla.org/en-US/docs/Web/API/RequestInit|Fetch API}
+     * @see These defaults align with the {@link https://developer.mozilla.org/en-US/docs/Web/API/RequestInit|Fetch API RequestInit}
      */
     public static newHttpClient(): HttpClient {
         return this.newBuilder().build();
@@ -121,7 +121,7 @@ export abstract class HttpClient {
      * @throws {TypeError} When the request parameter is  {@link https://developer.mozilla.org/en-US/docs/Glossary/Falsy|falsy}
      * @throws {HttpConnectTimeoutException} When the connection cannot be established with the server
      * @throws {HttpTimeoutException} When the request exceeds the configured timeout duration
-     * @throws {TypeError} When the response body cannot be deserialized according to its content typ
+     * @throws {TypeError} When the response body cannot be deserialized according to its content type
      *
      * @typeParam T - The expected type of the response body
      *
@@ -203,7 +203,6 @@ export interface Builder {
      * @returns The builder instance for method chaining
      * @throws {TypeError} If priority is not one of the valid enum values
      */
-
     priority(priority: Priority): Builder;
 
     /**
@@ -211,7 +210,7 @@ export interface Builder {
      *
      * @param policy - The {@link RetryPolicy} that determines when to retry requests
      * @param maxAttempts - Maximum number of retry attempts (must be > 0)
-     * @param delay - Time in milliseconds to wait between retries (must be >= 0)
+     * @param delay - Base delay in milliseconds between retries (must be >= 0)
      * @returns The builder instance for method chaining
      * @throws {TypeError} If any parameters are invalid:
      *   - Invalid retry policy
@@ -221,15 +220,15 @@ export interface Builder {
      * @example
      * ```typescript
      * const client = HttpClient.newBuilder()
-     *   .retry(RetryPolicy.ON_SERVER_ERROR, 3, 1000) // Retry 3 times with 1s delay on 5xx errors
+     *   .retry(RetryPolicy.ON_SERVER_ERROR, 3, 1000)
      *   .build();
      * ```
      *
      * @remarks
-     * - The first request is not counted as an attempt
+     * - The initial request is not counted as a retry attempt
      * - Retries use exponential backoff with the specified delay as base
      * - Network timeouts trigger retries according to the policy
-     * - Cancellation via abort signal stops retry attempts
+     * - Request cancellation via abort signal stops retry attempts
      */
     retry(policy: RetryPolicy, maxAttempts: number, delay: number): Builder
 

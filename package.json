@@ -1,7 +1,7 @@
 {
   "name": "http-client-for-ts",
-  "version": "2.0.1",
-  "description": "A fetch wrapper inspired by the Java http client design",
+  "version": "2.0.2",
+  "description": "An http client for making requests inspired by the Java http client design",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "private": false,
@@ -14,12 +14,15 @@
   },
   "license": "MIT",
   "keywords": [
-    "typescript",
-    "java",
-    "typescript-library",
-    "http",
-    "http-client",
     "fetch",
+    "java",
+    "api",
+    "http",
+    "typescript",
+    "typescript-library",
+    "http-client",
+    "http-request",
+    "request",
     "fetch-api"
   ],
   "repository": {
